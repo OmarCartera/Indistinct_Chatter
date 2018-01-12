@@ -6,7 +6,7 @@
 # *                            *
 # *         12/4/2017          *
 # *                            *
-# *     ETCP Multi-Client      *
+# *      TCP Multi-Client      *
 # *      Chat Application      *
 # ******************************/
 
