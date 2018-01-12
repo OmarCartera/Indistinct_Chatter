@@ -1,3 +1,15 @@
+#/******************************
+# *     Author: Omar Gamal     *
+# *   c.omargamal@gmail.com    *
+# *                            *
+# *     Language: Python       *
+# *                            *
+# *         12/4/2017          *
+# *                            *
+# *     ETCP Multi-Client      *
+# *      Chat Application      *
+# ******************************/
+
 #!/usr/bin/env python
 ###########################################
 from PyQt4 import QtCore, QtGui
