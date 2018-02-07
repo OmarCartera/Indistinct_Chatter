@@ -37,7 +37,8 @@ import pygame
 # wireless part
 from wireless import Wireless
 
-import emoji
+from gi.repository import Notify, GdkPixbuf
+import platform
 
 # progress bar GUI thread
 class progress_bar_thread(QtCore.QThread):
@@ -65,9 +66,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		# starting pygame
 		pygame.init()
 
+		# initialize notification object
+		Notify.init('indistinct chatter')
 
-		#self.lndt_msg.setText(emoji.emojize(':cupid:', use_aliases = True))
-		
 		# flag to tell if this host is a server
 		self.isServer = False
 
@@ -361,6 +362,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 					else:
 						# you have the freedom to either accept or reject the incoming media file
 						#self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + " Bytes, download? (Y/N)? -> ")
+						if(platform.system() == 'Linux'):
+							self.bubble = Notify.Notification.new('Incoming Media!', 'Open the app to accept or reject the file')
+						
 						self.lbl_error.setText('Incoming file!')
 						while ((not(self.radio_yes.isChecked())) and (not(self.radio_no.isChecked()))):
 							pass
@@ -451,7 +455,20 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 						self.media_response = 'y'
 
 					else:
-						self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + " Bytes, download? (Y/N)? -> ")
+						# you have the freedom to either accept or reject the incoming media file
+						#self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + " Bytes, download? (Y/N)? -> ")
+						if(platform.system() == 'Linux'):
+							self.bubble = Notify.Notification.new('Incoming Media!', 'Open the app to accept or reject the file')
+						
+						self.lbl_error.setText('Incoming file!')
+						while ((not(self.radio_yes.isChecked())) and (not(self.radio_no.isChecked()))):
+							pass
+
+						if (self.radio_yes.isChecked()):
+							self.media_response = 'y'
+
+						elif (self.radio_no.isChecked()):
+							self.media_response = 'n'
 
 					if (self.media_response == 'y'):
 						with open('new_' + self.filename, 'wb') as f:
@@ -542,6 +559,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				# if it is sending a message 3ady ya3ny
 				else:
 					try:
+						if(platform.system() == 'Linux'):
+							self.bubble = Notify.Notification.new(self.sender, self.data[0])
+
 						# play the notification sound
 						pygame.mixer.Sound('notification.wav').play()
 
@@ -597,6 +617,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 				else:
 					try:
+						if(platform.system() == 'Linux'):
+							self.bubble = Notify.Notification.new(self.sender, self.data[0])
+
 						pygame.mixer.Sound('notification.wav').play()
 
 						self.txt_chat.append(str(self.sender) +': ' + self.data[1])
