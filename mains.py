@@ -42,6 +42,10 @@ import platform
 if(platform.system() == 'Linux'):
 	from gi.repository import Notify, GdkPixbuf
 
+if(platform.system() == 'Windows'):
+	from win10toast import ToastNotifier
+
+
 # progress bar GUI thread
 class progress_bar_thread(QtCore.QThread):
 	def __init__(self):
@@ -74,6 +78,10 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			self.bubble = Notify.Notification.new('!', '?')
 			image = GdkPixbuf.Pixbuf.new_from_file('egg.png')
 			self.bubble.set_icon_from_pixbuf(image)
+
+		if(platform.system() == 'Windows'):
+			self.balloon = ToastNotifier()
+
 
 		# flag to tell if this host is a server
 		self.isServer = False
@@ -372,6 +380,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 							self.bubble.update('Incoming Media!', 'Open the app to accept or reject the file')
 							self.bubble.show()
 						
+						if(platform.system() == 'Windows'):
+							self.balloon.show_toast('Incoming Media!', 'Open the app to accept or reject the file', duration = 3, threaded = True)
+
 						self.lbl_error.setText('Incoming file!')
 						while ((not(self.radio_yes.isChecked())) and (not(self.radio_no.isChecked()))):
 							pass
@@ -467,6 +478,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 						if(platform.system() == 'Linux'):
 							self.bubble.update('Incoming Media!', 'Open the app to accept or reject the file')
 							self.bubble.show()
+
+						if(platform.system() == 'Windows'):
+							self.balloon.show_toast('Incoming Media!', 'Open the app to accept or reject the file', duration = 3, threaded = True)
 
 						self.lbl_error.setText('Incoming file!')
 						while ((not(self.radio_yes.isChecked())) and (not(self.radio_no.isChecked()))):
@@ -571,6 +585,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 							self.bubble.update(self.sender, self.data[0])
 							self.bubble.show()
 
+						if(platform.system() == 'Windows'):
+							self.balloon.show_toast(self.sender, self.data[0], icon_path = 'egg.png', duration = 3, threaded = True)
+
 						# play the notification sound
 						pygame.mixer.Sound('notification.wav').play()
 
@@ -630,6 +647,8 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 							self.bubble.update(self.sender, self.data[0])
 							self.bubble.show()
 
+						if(platform.system() == 'Windows'):
+							self.balloon.show_toast(self.sender, self.data[0], icon_path = 'egg.png', duration = 3, threaded = True)
 						pygame.mixer.Sound('notification.wav').play()
 
 						self.txt_chat.append(str(self.sender) +': ' + self.data[1])
