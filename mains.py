@@ -71,6 +71,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		# initialize notification object
 		if(platform.system() == 'Linux'):
 			Notify.init('indistinct chatter')
+			self.bubble = Notify.Notification.new('!', '?')
+			image = GdkPixbuf.Pixbuf.new_from_file('egg.png')
+			self.bubble.set_icon_from_pixbuf(image)
 
 		# flag to tell if this host is a server
 		self.isServer = False
@@ -366,7 +369,8 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 						# you have the freedom to either accept or reject the incoming media file
 						#self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + " Bytes, download? (Y/N)? -> ")
 						if(platform.system() == 'Linux'):
-							self.bubble = Notify.Notification.new('Incoming Media!', 'Open the app to accept or reject the file')
+							self.bubble.update('Incoming Media!', 'Open the app to accept or reject the file')
+							self.bubble.show()
 						
 						self.lbl_error.setText('Incoming file!')
 						while ((not(self.radio_yes.isChecked())) and (not(self.radio_no.isChecked()))):
@@ -461,8 +465,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 						# you have the freedom to either accept or reject the incoming media file
 						#self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + " Bytes, download? (Y/N)? -> ")
 						if(platform.system() == 'Linux'):
-							self.bubble = Notify.Notification.new('Incoming Media!', 'Open the app to accept or reject the file')
-						
+							self.bubble.update('Incoming Media!', 'Open the app to accept or reject the file')
+							self.bubble.show()
+
 						self.lbl_error.setText('Incoming file!')
 						while ((not(self.radio_yes.isChecked())) and (not(self.radio_no.isChecked()))):
 							pass
@@ -563,7 +568,8 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				else:
 					try:
 						if(platform.system() == 'Linux'):
-							self.bubble = Notify.Notification.new(self.sender, self.data[0])
+							self.bubble.update(self.sender, self.data[0])
+							self.bubble.show()
 
 						# play the notification sound
 						pygame.mixer.Sound('notification.wav').play()
@@ -621,7 +627,8 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				else:
 					try:
 						if(platform.system() == 'Linux'):
-							self.bubble = Notify.Notification.new(self.sender, self.data[0])
+							self.bubble.update(self.sender, self.data[0])
+							self.bubble.show()
 
 						pygame.mixer.Sound('notification.wav').play()
 
