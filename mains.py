@@ -37,8 +37,10 @@ import pygame
 # wireless part
 from wireless import Wireless
 
-from gi.repository import Notify, GdkPixbuf
 import platform
+
+if(platform.system() == 'Linux'):
+	from gi.repository import Notify, GdkPixbuf
 
 # progress bar GUI thread
 class progress_bar_thread(QtCore.QThread):
@@ -67,7 +69,8 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		pygame.init()
 
 		# initialize notification object
-		Notify.init('indistinct chatter')
+		if(platform.system() == 'Linux'):
+			Notify.init('indistinct chatter')
 
 		# flag to tell if this host is a server
 		self.isServer = False
