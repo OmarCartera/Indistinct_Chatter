@@ -381,7 +381,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 							self.bubble.show()
 						
 						if(platform.system() == 'Windows'):
-							self.balloon.show_toast('Incoming Media!', 'Open the app to accept or reject the file', duration = 3, threaded = True)
+							self.balloon.show_toast('Incoming Media!', 'Open the app to accept or reject the file', duration = 6, threaded = True)
 
 						self.lbl_error.setText('Incoming file!')
 						while ((not(self.radio_yes.isChecked())) and (not(self.radio_no.isChecked()))):
@@ -480,7 +480,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 							self.bubble.show()
 
 						if(platform.system() == 'Windows'):
-							self.balloon.show_toast('Incoming Media!', 'Open the app to accept or reject the file', duration = 3, threaded = True)
+							self.balloon.show_toast('Incoming Media!', 'Open the app to accept or reject the file', duration = 6, threaded = True)
 
 						self.lbl_error.setText('Incoming file!')
 						while ((not(self.radio_yes.isChecked())) and (not(self.radio_no.isChecked()))):
@@ -586,7 +586,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 							self.bubble.show()
 
 						if(platform.system() == 'Windows'):
-							self.balloon.show_toast(self.sender, self.data[0], icon_path = 'egg.png', duration = 3, threaded = True)
+							self.balloon.show_toast(self.sender, self.data[0], duration = 6, threaded = True)
 
 						# play the notification sound
 						pygame.mixer.Sound('notification.wav').play()
@@ -648,7 +648,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 							self.bubble.show()
 
 						if(platform.system() == 'Windows'):
-							self.balloon.show_toast(self.sender, self.data[0], icon_path = 'egg.png', duration = 3, threaded = True)
+							self.balloon.show_toast(self.sender, self.data[0], duration = 6, threaded = True)
 						pygame.mixer.Sound('notification.wav').play()
 
 						self.txt_chat.append(str(self.sender) +': ' + self.data[1])
