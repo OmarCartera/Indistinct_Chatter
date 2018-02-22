@@ -2,7 +2,7 @@
 # *     Author: Omar Gamal     *
 # *   c.omargamal@gmail.com    *
 # *                            *
-# *     Language: Python       *
+# *   Language: Python 2.7     *
 # *                            *
 # *         15/1/2018          *
 # *                            *
