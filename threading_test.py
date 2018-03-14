@@ -289,7 +289,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 			print('Media connected to: ' + self.med_addr)
 
-			start_new_thread(self.media_client_1, ())
+			start_new_thread(self.media_client, (j,))
 
 			# increment the number of connecting clients
 			self.j += 1
@@ -403,13 +403,13 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 
 	# method to listen to incoming media from the first client/sender
-	def media_client(self):
+	def media_client(self, which):
 		while True:
 			# waiting for a media file to be sent
 			print 'Waiting for a file'
 
 			# receive whatever is being sent by the first sender
-			self.media_data = self.media_conn_list[0].recv(2048)
+			self.media_data = self.media_conn_list[which].recv(2048)
 			print self.media_data
 
 			try:
@@ -453,13 +453,13 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 					if (self.media_response == 'y'):
 						# receive the incoming bytes and reconstruct the media file
 						with open('new_' + self.filename, 'wb') as f:
-							self.media_data = self.media_conn_list[0].recv(2048)
+							self.media_data = self.media_conn_list[which].recv(2048)
 							self.total_recv = len(self.media_data)
 							f.write(self.media_data)
 
 							# if we received less than the size of the file --> keep receiving
 							while (self.total_recv < self.filesize):
-								self.media_data = self.media_conn_list[0].recv(2048)
+								self.media_data = self.media_conn_list[which].recv(2048)
 								self.total_recv += len(self.media_data)
 								f.write(self.media_data)
 
@@ -481,26 +481,26 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 					# if didn't accept the media file, receive to empty the buffers and get rid of the data
 					else:
-						self.media_data = self.media_conn_list[0].recv(2048)
+						self.media_data = self.media_conn_list[which].recv(2048)
 						self.total_recv = len(self.media_data)
 
 						while (self.total_recv < self.filesize):
-							self.media_data = self.media_conn_list[0].recv(2048)
+							self.media_data = self.media_conn_list[which].recv(2048)
 							self.total_recv += len(self.media_data)
 
 				# if the sender is me --> discard the incoming data bytes
 				else:
-					self.media_data = self.media_conn_list[0].recv(2048)
+					self.media_data = self.media_conn_list[which].recv(2048)
 					self.total_recv = len(self.media_data)
 
 					while (self.total_recv < self.filesize):
-						self.media_data = self.media_conn_list[0].recv(2048)
+						self.media_data = self.media_conn_list[which].recv(2048)
 						self.total_recv += len(self.media_data)
 						
 			# if file is corrupted, empty the buffers
 			except ValueError:
 				self.lbl_error.setText("Corrupted File!")
-				rubbish = self.media_conn_list[0].recv(10000)
+				rubbish = self.media_conn_list[which].recv(10000)
 
 		# eeh da??
 			self.radio_yes.setChecked(False)
