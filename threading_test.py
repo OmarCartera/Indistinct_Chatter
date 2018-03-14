@@ -289,7 +289,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 			print('Media connected to: ' + self.med_addr)
 
-			start_new_thread(self.media_client, (j,))
+			start_new_thread(self.media_client, (self.j,))
 
 			# increment the number of connecting clients
 			self.j += 1
