@@ -368,6 +368,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 				# run a client thread to receive chat messages from the server
 				start_new_thread(self.threaded_client, (self.conn, 0,))
+				start_new_thread(self.notification_client, (0,))
 
 				# give it the server host IP, connect to it 'media things'
 				self.media_host = str(self.lndt_host.text())
