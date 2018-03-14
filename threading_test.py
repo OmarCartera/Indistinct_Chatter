@@ -87,12 +87,13 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.isServer = False
 
 		# data received from clients
-		self.data = ['.', '.']
+		self.data = ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.']
+		self.notif_data = ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.']
 
-
-		# clients counter: chat client i .. media client j
+		# clients counter: chat client i .. media client j .. notification k
 		self.i = 0
 		self.j = 0
+		self.k = 0
 
 		# setting text color for 'is typing...', chat area and error label
 		self.lbl_typing.setStyleSheet("color: rgb(170, 0, 0)")
@@ -228,6 +229,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		# threaded to work in the background without interrupting the main thread
 		start_new_thread(self.threaded_server, ())
 		start_new_thread(self.media_server, ())
+		start_new_thread(self.notification_server, ())
 
 
 
@@ -311,6 +313,39 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			# increment the number of connecting clients
 			self.j += 1
 
+
+
+	# when this host is the server brdo
+	def notification_server(self):
+		while True:
+			try:
+				# creating a media server at the given port
+				self.notification_s.bind((self.notification_host,self.notification_port))
+			
+			except socket.error:
+				pass
+
+
+			self.notification_s.listen(10)
+
+			print('Waiting for Notification...')
+
+			# accept the incoming media clients connection request
+			self.not_conn, self.not_addr = self.notification_s.accept()
+
+			# get the IP of this client
+			self.not_addr = self.not_addr[0]
+
+			# append the new client's IP and connection to their lists
+			self.notification_addr_list.append(self.not_addr)
+			self.notification_conn_list.append(self.not_conn)
+
+			print('Media connected to: ' + self.not_addr)
+
+			start_new_thread(self.notification_client, (self.k,))
+
+			# increment the number of connecting clients
+			self.k += 1
 
 
 	# if this host is a client
@@ -528,17 +563,46 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 
 
-	def decode_notification(self):
-		pass
+	def notification_client(self, which):
+		while True:
+			# wait to receive data from client 1
+			self.data[which] = self.notification_conn_list[which].recv(2048)
+			print 'notif_data_1: ' + self.notif_data[which]
+
+			if not self.notif_data[which]:
+				break
+			
+			# extract the sender name and message content from the received packet
+			# the name and the content are separated by '`'
+			self.sender = self.data[which].partition('`')[which]
+			self.notif_data[which] = self.notif_data[which][self.notif_data[which].index('`') + 1:]
+
+
+			if (self.sender != socket.getfqdn()):
+				# el mafrood a-broadcast el typing signals dee brdo
+				# if it is sending a 'is typing' signal
+
+				# add the received data to the chat room
+				self.lbl_typing.setText(self.sender + 'is typing...')
+
+
+				# if I'm the server --> broadcast to other clients
+				if (self.isServer):
+					## broadcast the typing thing
+					pass
+
+
+		# close the connection with that client
+		self.notification_conn_list[which].close()
 
 
 	# sends the data it received to all the client connected to it
 	def broadcast(self):
-		for i in range(len(self.notification_conn_list)):
-			for j in range(len(self.notification_conn_list)):
+		for i in range(len(self.conn_list)):
+			for j in range(len(self.conn_list)):
 				print 'broadcaster'
 				if(self.data[j] != ' '):
-					self.notification_conn_list[i].send(self.sender + '`' + self.data[j])
+					self.conn_list[i].send(self.sender + '`' + self.data[j])
 		
 
 
