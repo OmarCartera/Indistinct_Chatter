@@ -364,11 +364,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				self.s.connect((self.host, self.port))
 				self.conn = self.s
 				self.conn_list.append(self.conn)
-				self.notification_conn_list.append(self.conn)
 
 				# run a client thread to receive chat messages from the server
 				start_new_thread(self.threaded_client, (self.conn, 0,))
-				start_new_thread(self.notification_client, (0,))
 
 				# give it the server host IP, connect to it 'media things'
 				self.media_host = str(self.lndt_host.text())
@@ -378,6 +376,16 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 				# run a client thread to receive media from the server
 				start_new_thread(self.media_client, (self.j,))
+
+				# give it the server host IP, connect to it
+				self.notification_host = str(self.lndt_host.text())
+				self.notification_s.connect((self.notification_host, self.notification_port))
+				self.notif_conn = self.notification_s
+				self.conn_list.append(self.notif_conn)
+				self.notification_conn_list.append(self.notif_conn)
+
+				start_new_thread(self.notification_client, (0,))
+
 				self.lbl_error.clear()
 				self.lndt_msg.setFocus(True)
 
