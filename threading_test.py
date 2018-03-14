@@ -340,7 +340,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			self.notification_addr_list.append(self.not_addr)
 			self.notification_conn_list.append(self.not_conn)
 
-			print('Media connected to: ' + self.not_addr)
+			print('Notification connected to: ' + self.not_addr)
 
 			start_new_thread(self.notification_client, (self.k,))
 
@@ -364,6 +364,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				self.s.connect((self.host, self.port))
 				self.conn = self.s
 				self.conn_list.append(self.conn)
+				self.notification_conn_list.append(self.conn)
 
 				# run a client thread to receive chat messages from the server
 				start_new_thread(self.threaded_client, (self.conn, 0,))
@@ -566,7 +567,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	def notification_client(self, which):
 		while True:
 			# wait to receive data from client 1
-			self.data[which] = self.notification_conn_list[which].recv(2048)
+			self.notif_data[which] = self.notification_conn_list[which].recv(2048)
 			print 'notif_data_1: ' + self.notif_data[which]
 
 			if not self.notif_data[which]:
@@ -574,7 +575,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			
 			# extract the sender name and message content from the received packet
 			# the name and the content are separated by '`'
-			self.sender = self.data[which].partition('`')[which]
+			self.sender = self.notif_data[which].partition('`')[which]
 			self.notif_data[which] = self.notif_data[which][self.notif_data[which].index('`') + 1:]
 
 
