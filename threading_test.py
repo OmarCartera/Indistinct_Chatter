@@ -89,9 +89,6 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		# data received from clients
 		self.data = ['.', '.']
 
-		# ip and connection info about chat clients
-		self.addr_list = []
-		self.conn_list = []
 
 		# clients counter: chat client i .. media client j
 		self.i = 0
@@ -132,6 +129,10 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		# send the 'I am typing' signal whenever the msg box text changes
 		self.lndt_msg.textChanged.connect(self.typing_notification)
 
+		# ip and connection info about chat clients
+		self.addr_list = []
+		self.conn_list = []
+
 		# setting the chat socket connection parameters
 		self.host = ''
 		self.port = 5557
@@ -153,13 +154,32 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 		# setting the media socket connection parameters
 		self.media_host = ''
-		self.media_port = 3245
+		self.media_port = 5558
 
 		# establishing a TCP connection for the media server
 		self.media_s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 		# this line allows re-using the same socket even if it was closed improperly
 		self.media_s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+
+		########################
+		## notifications part ##
+		########################
+
+		# ip and connection info about media clients
+		self.notification_addr_list = []
+		self.notification_conn_list = []
+
+		# setting the media socket connection parameters
+		self.notification_host = ''
+		self.notification_port = 5559
+
+		# establishing a TCP connection for the media server
+		self.notification_s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+
+		# this line allows re-using the same socket even if it was closed improperly
+		self.notification_s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 
 
@@ -190,9 +210,6 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 			# setting the color back to BLACK
 			self.txt_chat.setTextColor(QColor(50, 50, 50))
-
-			# send the 'I finished typing' signal
-			self.conn_list[0].send(socket.getfqdn() + '`' + 'typn-')
 
 			# clear the message box
 			self.lndt_msg.clear()
@@ -352,44 +369,27 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			if (self.sender != socket.getfqdn()):
 				# el mafrood a-broadcast el typing signals dee brdo
 				# if it is sending a 'is typing' signal
-				if (self.data[which] == 'typn+'):
-					self.lbl_typing.setText(self.sender + ' is typing...')
-					#self.data[0] = ' '
 
-				# if it is sending 'stopped typing' signal
-				elif (self.data[which] == ('typn-' + self.sender +'`typn+')):
-					self.lbl_typing.clear()
-					#self.data[0] = ' '
+				try:
+					if(platform.system() == 'Linux'):
+						self.bubble.update(self.sender, self.data[which])
+						self.bubble.show()
 
-				elif (self.data[which].startswith('typn')):
-					self.lbl_typing.clear()
-					#self.data[which] = ' '
+					if(platform.system() == 'Windows'):
+						self.balloon.show_toast(self.sender, self.data[which], duration = 6, threaded = True)
 
-				elif (self.data[which] == ('typn-')):
-					self.lbl_typing.clear()
-					#self.data[which] = ' '
+					# play the notification sound
+					pygame.mixer.Sound('notification.wav').play()
 
-				# if it is sending a message 3ady ya3ny
-				else:
-					try:
-						if(platform.system() == 'Linux'):
-							self.bubble.update(self.sender, self.data[which])
-							self.bubble.show()
-
-						if(platform.system() == 'Windows'):
-							self.balloon.show_toast(self.sender, self.data[which], duration = 6, threaded = True)
-
-						# play the notification sound
-						pygame.mixer.Sound('notification.wav').play()
-
-						# add the received data to the chat room
-						self.txt_chat.append(str(self.sender) +': ' + self.data[which])
-						self.txt_chat.moveCursor(QtGui.QTextCursor.End)
+					# add the received data to the chat room
+					self.txt_chat.append(str(self.sender) +': ' + self.data[which])
+					self.txt_chat.moveCursor(QtGui.QTextCursor.End)
 
 
-					except AttributeError as e:
-						self.txt_chat.append(str(self.host) +': ' + self.data[which])
-						self.txt_chat.moveCursor(QtGui.QTextCursor.End)
+				except AttributeError as e:
+					self.txt_chat.append(str(self.host) +': ' + self.data[which])
+					self.txt_chat.moveCursor(QtGui.QTextCursor.End)
+
 
 				# if I'm the server --> broadcast to other clients
 				if (self.isServer):
@@ -519,21 +519,26 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 		# if you are the server --> send the notification to everyone
 		if (self.isServer):
-			for i in range(len(self.conn_list)):
-				self.conn_list[i].send(socket.getfqdn() + '`' + 'typn+')
+			for i in range(len(self.notification_conn_list)):
+				self.notification_conn_list[i].send(socket.getfqdn() + '`' + 'typn+')
 
 		# if a client --> just send to the server and the server will send to the others
 		else:
-			self.conn_list[0].send(socket.getfqdn() + '`' + 'typn+')
+			self.notification_conn_list[0].send(socket.getfqdn() + '`' + 'typn+')
+
+
+
+	def decode_notification(self):
+		pass
 
 
 	# sends the data it received to all the client connected to it
 	def broadcast(self):
-		for i in range(len(self.conn_list)):
-			for j in range(len(self.conn_list)):
+		for i in range(len(self.notification_conn_list)):
+			for j in range(len(self.notification_conn_list)):
 				print 'broadcaster'
 				if(self.data[j] != ' '):
-					self.conn_list[i].send(self.sender + '`' + self.data[j])
+					self.notification_conn_list[i].send(self.sender + '`' + self.data[j])
 		
 
 
