@@ -323,7 +323,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				self.media_conn_list.append(self.media_conn)
 
 				# run a client thread to receive media from the server
-				start_new_thread(self.media_client, (self.j))
+				start_new_thread(self.media_client, (self.j,))
 				self.lbl_error.clear()
 				self.lndt_msg.setFocus(True)
 
