@@ -289,7 +289,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 			print('Media connected to: ' + self.med_addr)
 
-			start_new_thread(self.media_client, (self.j))
+			start_new_thread(self.media_client, (self.j,))
 
 			# increment the number of connecting clients
 			self.j += 1
@@ -314,7 +314,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				self.conn_list.append(self.conn)
 
 				# run a client thread to receive chat messages from the server
-				start_new_thread(self.threaded_client, (self.conn, 0))
+				start_new_thread(self.threaded_client, (self.conn, 0,))
 
 				# give it the server host IP, connect to it 'media things'
 				self.media_host = str(self.lndt_host.text())
