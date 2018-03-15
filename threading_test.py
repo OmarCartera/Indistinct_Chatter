@@ -432,6 +432,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				except AttributeError as e:
 					self.txt_chat.append(str(self.host) +': ' + self.data[which])
 					self.txt_chat.moveCursor(QtGui.QTextCursor.End)
+					self.lbl_typing.clear()
 
 
 				# if I'm the server --> broadcast to other clients
@@ -599,7 +600,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 					## broadcast the typing thing
 					pass
 
-			time.sleep(1)
+			time.sleep(0.5)
 			self.lbl_typing.clear()
 
 
