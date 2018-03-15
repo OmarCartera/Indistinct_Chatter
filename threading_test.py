@@ -26,6 +26,7 @@ import sys
 # to open files and sleep()
 import os
 import time
+import datetime
 
 #socket things
 import socket
@@ -89,6 +90,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		# data received from clients
 		self.data = ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.']
 		self.notif_data = ['.', '.', '.', '.', '.', '.', '.', '.', '.', '.']
+		self.timer = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
 
 		# clients counter: chat client i .. media client j .. notification k
 		self.i = 0
@@ -573,7 +575,12 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 
 	def notification_client(self, which):
+		start_new_thread(self.timeout, (self.k,))
+		
 		while True:
+
+			self.timer[self.k] = int(str(datetime.datetime.now())[20:23])
+
 			# wait to receive data from client 1
 			self.notif_data[which] = self.notification_conn_list[which].recv(2048)
 			print 'notif_data_1: ' + self.notif_data[which]
@@ -600,9 +607,6 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 					## broadcast the typing thing
 					pass
 
-			time.sleep(0.5)
-			self.lbl_typing.clear()
-
 
 		# close the connection with that client
 		self.notification_conn_list[which].close()
@@ -617,6 +621,13 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 					self.conn_list[i].send(self.sender + '`' + self.data[j])
 		
 
+
+	def timeout(self, which):
+		while 1:
+			if (abs(int(str(datetime.datetime.now())[20:23]) - self.timer[which])) > 500:
+				self.lbl_typing.clear()
+
+			time.sleep(0.1)
 
 
 
