@@ -409,8 +409,6 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			self.sender = self.data[which].partition('`')[which]
 			self.data[which] = self.data[which][self.data[which].index('`') + 1:]
 
-			print self.sender
-
 			if (self.sender != socket.getfqdn()):
 				# el mafrood a-broadcast el typing signals dee brdo
 				# if it is sending a 'is typing' signal
@@ -600,6 +598,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				if (self.isServer):
 					## broadcast the typing thing
 					pass
+
+			time.sleep(1)
+			self.lbl_typing.clear()
 
 
 		# close the connection with that client
