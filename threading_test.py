@@ -624,7 +624,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 	def timeout(self, which):
 		while 1:
-			if (abs(int(str(datetime.datetime.now())[20:23]) - self.timer[which])) > 750:
+			if (abs(int(str(datetime.datetime.now())[20:23]) - self.timer[which])) > 600:
 				self.lbl_typing.clear()
 
 			time.sleep(0.1)
