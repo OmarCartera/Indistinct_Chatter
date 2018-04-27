@@ -135,7 +135,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		# setting the chat socket connection parameters
 		self.host = ''
 		self.port = 5557
-
+		
 		# establishing a TCP connection for the chat server
 		self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -544,7 +544,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 
 	# a thread that keeps polling any incoming data from a client/sender
-	def threaded_client_1(self,client_conn):
+	def threaded_client_1(self, client_conn):
 		while True:
 			# wait to receive data from client 1
 			self.data[0] = self.conn_list[0].recv(2048)
@@ -613,7 +613,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 
 	# the same commenting as above
-	def threaded_client_2(self,client_conn):
+	def threaded_client_2(self, client_conn):
 		while True:
 			self.data[1] = self.conn_list[1].recv(2048)
 			print 'data_2: ' + self.data[1]
