@@ -2,7 +2,7 @@
 # *     Author: Omar Gamal     *
 # *   c.omargamal@gmail.com    *
 # *                            *
-# *   Language: Python 2.7     *
+# *   Language: Python 3.6     *
 # *                            *
 # *         15/1/2018          *
 # *                            *
@@ -29,10 +29,10 @@ import time
 
 #socket things
 import socket
-from thread import *
+import _thread
 
-# to play sound files
-import pygame
+# to play notification sound
+import subprocess
 
 # wireless part
 from wireless import Wireless
@@ -44,7 +44,6 @@ if(platform.system() == 'Linux'):
 
 if(platform.system() == 'Windows'):
 	from win10toast import ToastNotifier
-
 
 # progress bar GUI thread
 class progress_bar_thread(QtCore.QThread):
@@ -67,10 +66,6 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		# GUI thread things
 		self.progress_bar_thread = progress_bar_thread()
 		self.connect(self.progress_bar_thread, SIGNAL('update_progress_bar()'), self.update_progress_bar)
-		
-
-		# starting pygame
-		pygame.init()
 
 		# initialize notification object
 		if(platform.system() == 'Linux'):
@@ -81,6 +76,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 		if(platform.system() == 'Windows'):
 			self.balloon = ToastNotifier()
+
+
+		self.my_username = socket.getfqdn()
 
 
 		# flag to tell if this host is a server
@@ -98,9 +96,9 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.j = 0
 
 		# setting text color for 'is typing...', chat area and error label
-		self.lbl_typing.setStyleSheet("color: rgb(170, 0, 0)")
+		self.lbl_typing.setStyleSheet('color: rgb(170, 0, 0)')
 		self.txt_chat.setTextColor(QColor(50, 50, 50))
-		self.lbl_error.setStyleSheet("color: rgb(255, 0, 0)")
+		self.lbl_error.setStyleSheet('color: rgb(255, 0, 0)')
 
 		# connecting the GUI objects to their methods
 		self.lndt_host.setFocus(True)
@@ -112,10 +110,10 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				self.lndt_host.setText('192.168.1.')
 
 			else:
-				self.lndt_host.setText('172.28.130.')
+				self.lndt_host.setText('127.0.0.1')
 
 		except:
-			self.lndt_host.setText('172.28.130.')
+			self.lndt_host.setText('127.0.0.1')
 
 
 		self.btn_send.clicked.connect(self.send_chat)
@@ -162,17 +160,15 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 		self.media_s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
 
-
-
 	# sending messages to the chat room
 	def send_chat(self):
 		if (self.lndt_msg.text() == ''):
 			# set the chat box borders to red if sending blank
-			self.lndt_msg.setStyleSheet("border: 1px solid red")
+			self.lndt_msg.setStyleSheet('border: 1px solid red')
 
 		else:
 			# set the chat box borders to grey if sending anything other than blank
-			self.lndt_msg.setStyleSheet("border: 1px solid grey")
+			self.lndt_msg.setStyleSheet('border: 1px solid grey')
 
 			# try sending to every client in the room
 			# clients only send to the server,
@@ -180,7 +176,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			for i in range(len(self.conn_list)):
 				# every packet I send is in the form (my_computer_name`my_msg)
 				# getfqdn() gets my computer name
-				self.conn_list[i].send(socket.getfqdn() + '`' + str(self.lndt_msg.text()))
+				self.conn_list[i].send(str(self.my_username + '`' + str(self.lndt_msg.text())).encode())
 			
 			# setting Your message clolr to RED
 			self.txt_chat.setTextColor(QColor(200, 0, 0))
@@ -193,7 +189,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			self.txt_chat.setTextColor(QColor(50, 50, 50))
 
 			# send the 'I finished typing' signal
-			self.conn_list[0].send(socket.getfqdn() + '`' + 'typn-')
+			self.conn_list[0].send(str(self.my_username + '`' + 'typn-').encode())
 
 			# clear the message box
 			self.lndt_msg.clear()
@@ -204,14 +200,15 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	def server_conn(self):
 		# raising the server flag
 		self.isServer = True
+		self.my_username = 'Server'
 
 		self.lndt_msg.setFocus(True)
 		self.lndt_host.clear()
 
 		# starting a thread to keep listening to any connecting client
 		# threaded to work in the background without interrupting the main thread
-		start_new_thread(self.threaded_server, ())
-		start_new_thread(self.media_server, ())
+		_thread.start_new_thread(self.threaded_server, ())
+		_thread.start_new_thread(self.media_server, ())
 
 
 	# when this host is the server brdo
@@ -244,12 +241,12 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			# if this is the first client
 			if (self.j == 0):
 				# run the first client thread
-				start_new_thread(self.media_client_1, ())
+				_thread.start_new_thread(self.media_client_1, ())
 
 			# if this is the second client
 			elif (self.j == 1):
 				# run another thread for the second client
-				start_new_thread(self.media_client_2, ())
+				_thread.start_new_thread(self.media_client_2, ())
 
 			# increment the number of connecting clients
 			self.j += 1
@@ -287,18 +284,18 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 				print('Connected to:' + self.addr)
 
-				print self.addr_list
-				print self.conn_list
+				print(self.addr_list)
+				print(self.conn_list)
 
 				# if this is the first client
 				if(self.i == 0):
 					# run the first client thread
-					start_new_thread(self.threaded_client_1, (self.conn_list[0],))
+					_thread.start_new_thread(self.threaded_client_1, (self.conn_list[0],))
 
 				# if this is the second client
 				elif(self.i == 1):
 					# run another thread for the second client
-					start_new_thread(self.threaded_client_2, (self.conn_list[1],))
+					_thread.start_new_thread(self.threaded_client_2, (self.conn_list[1],))
 
 				# increment the number of connecting clients
 				self.i += 1
@@ -314,12 +311,12 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	def client_conn(self):
 		if (self.lndt_host.text() == ''):
 			# setting host ip box borders to red if blank
-			self.lndt_host.setStyleSheet("border: 1px solid red")
+			self.lndt_host.setStyleSheet('border: 1px solid red')
 
 		else:
 			try:
 				# setting host ip box borders to grey if not blank
-				self.lndt_host.setStyleSheet("border: 1px solid grey")
+				self.lndt_host.setStyleSheet('border: 1px solid grey')
 
 				# give it the server host IP, connect to it
 				self.host = str(self.lndt_host.text())
@@ -328,7 +325,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				self.conn_list.append(self.conn)
 
 				# run a client thread to receive chat messages from the server
-				start_new_thread(self.threaded_client_1, (self.conn,))
+				_thread.start_new_thread(self.threaded_client_1, (self.conn,))
 
 				# give it the server host IP, connect to it 'media things'
 				self.media_host = str(self.lndt_host.text())
@@ -337,12 +334,12 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				self.media_conn_list.append(self.media_conn)
 
 				# run a client thread to receive media from the server
-				start_new_thread(self.media_client_1, ())
+				_thread.start_new_thread(self.media_client_1, ())
 				self.lbl_error.clear()
 				self.lndt_msg.setFocus(True)
 
 			except socket.error:
-				self.lbl_error.setText("No server at this IP!")
+				self.lbl_error.setText('No server at this IP!')
 
 
 
@@ -350,11 +347,11 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	def media_client_1(self):
 		while True:
 			# waiting for a media file to be sent
-			print 'Waiting for a file'
+			print('Waiting for a file')
 
 			# receive whatever is being sent by the first sender
-			self.media_data = self.media_conn_list[0].recv(2048)
-			print self.media_data
+			self.media_data = self.media_conn_list[0].recv(2048).decode()
+			print(self.media_data)
 
 			try:
 				# take the string before the ` --> the sender name
@@ -365,7 +362,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 				self.filesize = int(self.media_data[self.media_data.index('|')+1:])
 
 				# if the sender isn't me
-				if (self.media_sender != socket.getfqdn()):
+				if (self.media_sender != self.my_username):
 					# if you are the server
 					if (self.isServer):
 						# you must accept whatever data is coming
@@ -375,7 +372,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 					# if you are a client
 					else:
 						# you have the freedom to either accept or reject the incoming media file
-						#self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + " Bytes, download? (Y/N)? -> ")
+						#self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + ' Bytes, download? (Y/N)? -> ')
 						if(platform.system() == 'Linux'):
 							self.bubble.update('Incoming Media!', 'Open the app to accept or reject the file')
 							self.bubble.show()
@@ -397,19 +394,19 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 					if (self.media_response == 'y'):
 						# receive the incoming bytes and reconstruct the media file
 						with open('new_' + self.filename, 'wb') as f:
-							self.media_data = self.media_conn_list[0].recv(2048)
+							self.media_data = self.media_conn_list[0].recv(2048).decode()
 							self.total_recv = len(self.media_data)
-							f.write(self.media_data)
+							f.write(str(self.media_data).encode())
 
 							# if we received less than the size of the file --> keep receiving
 							while (self.total_recv < self.filesize):
-								self.media_data = self.media_conn_list[0].recv(2048)
+								self.media_data = self.media_conn_list[0].recv(2048).decode()
 								self.total_recv += len(self.media_data)
-								f.write(self.media_data)
+								f.write(str(self.media_data).encode())
 
 								# start the GUI thread that updates the progress bar
 								self.progress_bar_thread.start()
-							print "Download Completed!"
+							print('Download Completed!')
 
 						self.lbl_error.clear()
 
@@ -425,26 +422,26 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 					# if didn't accept the media file, receive to empty the buffers and get rid of the data
 					else:
-						self.media_data = self.media_conn_list[0].recv(2048)
+						self.media_data = self.media_conn_list[0].recv(2048).decode()
 						self.total_recv = len(self.media_data)
 
 						while (self.total_recv < self.filesize):
-							self.media_data = self.media_conn_list[0].recv(2048)
+							self.media_data = self.media_conn_list[0].recv(2048).decode()
 							self.total_recv += len(self.media_data)
 
 				# if the sender is me --> discard the incoming data bytes
 				else:
-					self.media_data = self.media_conn_list[0].recv(2048)
+					self.media_data = self.media_conn_list[0].recv(2048).decode()
 					self.total_recv = len(self.media_data)
 
 					while (self.total_recv < self.filesize):
-						self.media_data = self.media_conn_list[0].recv(2048)
+						self.media_data = self.media_conn_list[0].recv(2048).decode()
 						self.total_recv += len(self.media_data)
 						
 			# if file is corrupted, empty the buffers
 			except ValueError:
-				self.lbl_error.setText("Corrupted File!")
-				rubbish = self.media_conn_list[0].recv(10000)
+				self.lbl_error.setText('Corrupted File!')
+				rubbish = self.media_conn_list[0].recv(10000).decode()
 
 		# eeh da??
 			self.radio_yes.setChecked(False)
@@ -458,23 +455,23 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	# nafs el comments elly foo2 b2a msh ha3od akteb tany
 	def media_client_2(self):
 		while True:
-			print 'Waiting for a file'
+			print('Waiting for a file')
 
-			self.media_data = self.media_conn_list[1].recv(2048)
-			print self.media_data
+			self.media_data = self.media_conn_list[1].recv(2048).decode()
+			print(self.media_data)
 
 			try:
 				self.media_sender = self.media_data[:self.media_data.index('`')]
 				self.filename = self.media_data[self.media_data.index('`')+1:self.media_data.index('|')]
 				self.filesize = int(self.media_data[self.media_data.index('|')+1:])
 
-				if (self.media_sender != socket.getfqdn()):
+				if (self.media_sender != self.my_username):
 					if (self.isServer):
 						self.media_response = 'y'
 
 					else:
 						# you have the freedom to either accept or reject the incoming media file
-						#self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + " Bytes, download? (Y/N)? -> ")
+						#self.media_response = raw_input(self.media_sender + ' is sending ' + self.filename + ' of ' + str(self.filesize) + ' Bytes, download? (Y/N)? -> ')
 						if(platform.system() == 'Linux'):
 							self.bubble.update('Incoming Media!', 'Open the app to accept or reject the file')
 							self.bubble.show()
@@ -494,17 +491,17 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 					if (self.media_response == 'y'):
 						with open('new_' + self.filename, 'wb') as f:
-							self.media_data = self.media_conn_list[1].recv(2048)
+							self.media_data = self.media_conn_list[1].recv(2048).decode()
 							self.total_recv = len(self.media_data)
 							f.write(self.media_data)
 
 							while (self.total_recv < self.filesize):
-								self.media_data = self.media_conn_list[1].recv(2048)
+								self.media_data = self.media_conn_list[1].recv(2048).decode()
 								self.total_recv += len(self.media_data)
 								f.write(self.media_data)
 
 								self.progress_bar_thread.start()
-							print "Download Completed!"
+							print('Download Completed!')
 
 						self.lbl_error.clear()
 						f.close()
@@ -518,25 +515,25 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 
 					else:
-						self.media_data = self.media_conn_list[1].recv(2048)
+						self.media_data = self.media_conn_list[1].recv(2048).decode()
 						self.total_recv = len(self.media_data)
 
 						while (self.total_recv < self.filesize):
-							self.media_data = self.media_conn_list[1].recv(2048)
+							self.media_data = self.media_conn_list[1].recv(2048).decode()
 							self.total_recv += len(self.media_data)
 
 				else:
-					self.media_data = self.media_conn_list[1].recv(2048)
+					self.media_data = self.media_conn_list[1].recv(2048).decode()
 					self.total_recv = len(self.media_data)
 
 					while (self.total_recv < self.filesize):
-						self.media_data = self.media_conn_list[1].recv(2048)
+						self.media_data = self.media_conn_list[1].recv(2048).decode()
 						self.total_recv += len(self.media_data)
 						
 
 			except ValueError:
-				self.lbl_error.setText("Corrupted File!")
-				rubbish = self.media_conn_list[1].recv(10000)
+				self.lbl_error.setText('Corrupted File!')
+				rubbish = self.media_conn_list[1].recv(10000).decode()
 
 		s.close()
 
@@ -547,8 +544,8 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	def threaded_client_1(self, client_conn):
 		while True:
 			# wait to receive data from client 1
-			self.data[0] = self.conn_list[0].recv(2048)
-			print 'data_1: ' + self.data[0]
+			self.data[0] = self.conn_list[0].recv(2048).decode()
+			print('data_1: ' + self.data[0])
 
 			if not self.data[0]:
 				break
@@ -558,7 +555,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			self.sender = self.data[0].partition('`')[0]
 			self.data[0] = self.data[0][self.data[0].index('`') + 1:]
 
-			if (self.sender != socket.getfqdn()):
+			if (self.sender != self.my_username):
 				# el mafrood a-broadcast el typing signals dee brdo
 				# if it is sending a 'is typing' signal
 				if (self.data[0] == 'typn+'):
@@ -589,7 +586,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 							self.balloon.show_toast(self.sender, self.data[0], duration = 6, threaded = True)
 
 						# play the notification sound
-						pygame.mixer.Sound('notification.wav').play()
+						## _thread.start_new_thread(self.play_notification, ())
 
 						# add the received data to the chat room
 						self.txt_chat.append(str(self.sender) +': ' + self.data[0])
@@ -602,7 +599,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 				# if I'm the server --> broadcast to other clients
 				if (self.isServer):
-					print 'broadcaster_1'
+					print('broadcaster_1')
 					self.broadcast()
 
 
@@ -615,8 +612,8 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	# the same commenting as above
 	def threaded_client_2(self, client_conn):
 		while True:
-			self.data[1] = self.conn_list[1].recv(2048)
-			print 'data_2: ' + self.data[1]
+			self.data[1] = self.conn_list[1].recv(2048).decode()
+			print('data_2: ' + self.data[1])
 
 			if not self.data[1]:
 				break
@@ -624,7 +621,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			self.sender = self.data[1].partition('`')[0]
 			self.data[1] = self.data[1][self.data[1].index('`') + 1:]
 
-			if (self.sender != socket.getfqdn()):
+			if (self.sender != self.my_username):
 				if (self.data[1] == 'typn+'):
 					self.lbl_typing.setText(self.sender + ' is typing...')
 					self.data[1] = ' '
@@ -649,7 +646,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 						if(platform.system() == 'Windows'):
 							self.balloon.show_toast(self.sender, self.data[0], duration = 6, threaded = True)
-						pygame.mixer.Sound('notification.wav').play()
+						## _thread.start_new_thread(self.play_notification, ())
 
 						self.txt_chat.append(str(self.sender) +': ' + self.data[1])
 						self.txt_chat.moveCursor(QtGui.QTextCursor.End)
@@ -661,7 +658,7 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 
 
 				if (self.isServer):
-					print 'broadcaster_2'
+					print('broadcaster_2')
 					self.broadcast()
 
 
@@ -673,25 +670,25 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	# or broadcast it if you are the server
 	def typing_notification(self):
 		# if typing --> set chat box borders to grey in case it was red
-		self.lndt_msg.setStyleSheet("border: 1px solid grey")
+		self.lndt_msg.setStyleSheet('border: 1px solid grey')
 
 		# if you are the server --> send the notification to everyone
 		if (self.isServer):
 			for i in range(len(self.conn_list)):
-				self.conn_list[i].send(socket.getfqdn() + '`' + 'typn+')
+				self.conn_list[i].send(str(self.my_username + '`' + 'typn+').encode())
 
 		# if a client --> just send to the server and the server will send to the others
 		else:
-			self.conn_list[0].send(socket.getfqdn() + '`' + 'typn+')
+			self.conn_list[0].send(str(self.my_username + '`' + 'typn+').encode())
 
 
 	# sends the data it received to all the client connected to it
 	def broadcast(self):
 		for i in range(len(self.conn_list)):
 			for j in range(len(self.conn_list)):
-				print 'broadcaster'
+				print('broadcaster')
 				if(self.data[j] != ' '):
-					self.conn_list[i].send(self.sender + '`' + self.data[j])
+					self.conn_list[i].send(str(self.sender + '`' + self.data[j]).encode())
 		
 
 
@@ -704,18 +701,18 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	def attach_file(self):
 		try:
 			# get the file path of the file you want to send
-			self.filepath = QtGui.QFileDialog.getOpenFileNames(self, 'Choose any file to send', "/home/omarcartera/Desktop", '*')
+			self.filepath = QtGui.QFileDialog.getOpenFileNames(self, 'Choose any file to send', '/home/omarcartera/Desktop', '*')
 			self.filepath = str(self.filepath[0])
 
 			# gets the filename from the path i.e. .../.../../../filename
 			self.filename = str(os.path.basename(self.filepath))
 
 
-			print self.filename
+			print(self.filename)
 
 			# send file, the sender is client 0
 			self.which = 8
-			start_new_thread(self.send_file, ())
+			_thread.start_new_thread(self.send_file, ())
 
 		except IndexError:
 			pass
@@ -731,11 +728,11 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 			if (i != self.which):
 				# if the file is available on the desk
 				if os.path.isfile(self.filepath):
-					print self.filename
-					print str(os.path.getsize(self.filepath))
+					print(self.filename)
+					print(str(os.path.getsize(self.filepath)))
 
 					# send --> sender_name`filename|file size
-					self.media_conn_list[i].send(socket.getfqdn() + '`' + self.filename + '|' + str(os.path.getsize(self.filepath)))
+					self.media_conn_list[i].send(str(self.my_username + '`' + self.filename + '|' + str(os.path.getsize(self.filepath))).encode())
 					
 					# leeh??
 					time.sleep(1)
@@ -743,13 +740,14 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 					# open the file and send its content to the receivers
 					with open(self.filepath, 'rb') as f:
 						bytesToSend = f.read(2048)
-						self.media_conn_list[i].send(bytesToSend)
-						while bytesToSend != "":
+						self.media_conn_list[i].send(str(bytesToSend).encode())
+						
+						while bytesToSend != '':
 							bytesToSend = f.read(2048)
-							self.media_conn_list[i].send(bytesToSend)
+							self.media_conn_list[i].send(str(bytesToSend).encode())
 
 				else:
-					print("ERR ")
+					print('ERR ')
 
 				#self.media_conn_list[0].close()
 
@@ -757,6 +755,10 @@ class mainApp(QtGui.QMainWindow, design.Ui_MainWindow):
 	# change the progress bar value according to the changes to the variables below
 	def update_progress_bar(self):
 		self.bar_loading.setValue((self.total_recv/float(self.filesize))*100)
+
+
+	def play_notification(self):
+		subprocess.call(['aplay',  'notification.wav'])
 
 
 
